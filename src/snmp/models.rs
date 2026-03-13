@@ -1,50 +1,83 @@
+use async_snmp::{ 
+    Value,
+};
+use serde::Serialize;
+// use chrono::{DateTime, Utc};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Access {
-    ReadOnly,
-    ReadWrite,
-    WriteOnly,
+
+pub struct OidDefinition {
+    name: &'static str,
+    oid: Vec<u16>,
+    parser: fn(Value) -> String,
 }
 
-impl Access {
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            Access::ReadOnly => "read-only",
-            AcceAccessssType::ReadWrite => "read-write",
+#[derive(Debug, Serialize)]
+pub struct OidResult {
+    pub name: &'static str,
+    pub oid: &'static str,
+    #[serde(skip)]
+    pub raw: Value,
+    pub raw_as_str: String,
+    pub parsed: Option<String>,
+    pub display: String,  // готовое форматированное сообщение
+}
+
+impl OidResult {
+    pub fn new(
+        name: &'static str, 
+        oid: &'static str, 
+        raw: Value,
+        parser: fn(&Value) -> Option<String>,
+    ) -> Self {
+        let raw_as_str = raw.to_string();
+        let parsed = parser(&raw);
+        
+        // Форматируем parsed красиво
+        let parsed_display = match &parsed {
+            Some(v) => v.as_str(),
+            None => "None",
+        };
+        
+        let display = format!(
+            "Oid={}[{}] значение={} преобразованное={}",
+            name, 
+            oid,
+            raw.to_string(), 
+            parsed_display
+        );
+        
+        Self {
+            name,
+            oid,
+            raw,
+            raw_as_str,
+            parsed,
+            display,
         }
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct OidDef {
-    /// Имя параметра из документации (например "SwarcoUTCTrafftechPhaseStatus")
-    pub name: &'static str,
-    /// Числовой OID (например [1.3.6.1.4.1.1618.3.7.2.11.2])
-    pub oid: &'static [u32],
-    /// Тип доступа (read-only / read-write)
-    pub access: AccessType,
-    /// Описание параметра
-    pub description: &'static str,
-}
 
+// #[derive(Debug, Clone, Serialize)]
+// pub struct OidResult {
+//     #[serde(skip)]
+//     pub raw: Value,           // сырое значение (не в JSON)
+//     pub value: String,        // значение как строка (всегда в JSON)
+//     pub name: String,
+//     pub oid: String,
+//     // pub timestamp: DateTime<Utc>,
+// }
 
-impl OidDef {
-    /// Преобразовать OID в строку "1.3.6.1.4.1.1618.3.7.2.11.2"
-    pub fn to_string(&self) -> String {
-        self.oid
-            .iter()
-            .map(|n| n.to_string())
-            .collect::<Vec<_>>()
-            .join(".")
-    }
-    
-    /// Получить OID как срез (для async_snmp)
-    pub fn as_slice(&self) -> &[u32] {
-        self.oid
-    }
-
-    pub fn is_writable(&self) -> bool {
-        self.access == AccessType::ReadWrite
-    }
-
-}
+// impl OidResult {
+//     pub fn new(raw: Value, name: String, oid: String) -> Self {
+//         let value = raw.to_string(); // Value умеет сам себя отображать
+        
+//         Self {
+//             raw,
+//             value,
+//             name,
+//             oid,
+//             // timestamp: Utc::now(),
+//         }
+//     }
+// }
