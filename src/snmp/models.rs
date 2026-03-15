@@ -1,14 +1,35 @@
 use async_snmp::{ 
     Value,
+    
 };
 use serde::Serialize;
 // use chrono::{DateTime, Utc};
 
 
+pub enum AccessType {
+    ReadOnly,
+    ReadWrite,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum OidValueType {
+    Integer,
+    Gauge32,
+    Unsigned32,
+    Counter32,
+    Counter64,
+    OctetString,
+    IpAddress,
+    ObjectIdentifier,
+    Timeticks,
+    Null,
+}
+
 pub struct OidDefinition {
-    name: &'static str,
-    oid: Vec<u16>,
-    parser: fn(Value) -> String,
+    pub name: &'static str,
+    pub parser: fn(Value) -> Option<String>,
+    pub value_type: OidValueType,
+    pub access: AccessType,
 }
 
 #[derive(Debug, Serialize)]
@@ -16,9 +37,9 @@ pub struct OidResult {
     pub name: &'static str,
     pub oid: &'static str,
     #[serde(skip)]
-    pub raw: Value,
-    pub raw_as_str: String,
-    pub parsed: Option<String>,
+    pub raw_value: Value,
+    pub raw_value_as_str: String,
+    pub business_value: Option<String>,
     pub display: String,  // готовое форматированное сообщение
 }
 
@@ -49,9 +70,9 @@ impl OidResult {
         Self {
             name,
             oid,
-            raw,
-            raw_as_str,
-            parsed,
+            raw_value: raw,
+            raw_value_as_str: raw_as_str,
+            business_value: parsed,
             display,
         }
     }

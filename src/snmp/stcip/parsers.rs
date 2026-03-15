@@ -1,6 +1,6 @@
 use async_snmp::Value;
 
-pub fn parse_stage_val_swarco(stage: &Value) -> Option<String> {
+pub fn parse_stage_val_swarco(stage: Value) -> Option<String> {
 
     match stage.as_u32() {
         Some(stage_val) => {
