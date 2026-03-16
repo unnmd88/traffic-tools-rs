@@ -41,6 +41,16 @@ impl SwarcoOidRegistry {
             },
         );
 
+        oids.insert(
+            "1.3.6.1.4.1.1618.3.7.2.3.3",
+            OidDefinition {
+                name: "swarcoUTCTrafftechSituationSource",
+                parser: parse_val_as_str,
+                value_type: OidValueType::Integer,
+                access: AccessType::ReadOnly,
+            },
+        );
+
         Self { oids: oids }
     }
 
@@ -48,7 +58,6 @@ impl SwarcoOidRegistry {
         self.oids.get(oid)
     }
 }
-
 
 // /// Текущая фаза
 // pub const SwarcoUTCTrafftechPhaseStatus: OidDef = OidDef {

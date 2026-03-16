@@ -3,6 +3,7 @@ use async_snmp::{
     
 };
 use serde::Serialize;
+use serde_json::json;
 // use chrono::{DateTime, Utc};
 
 
@@ -25,6 +26,8 @@ pub enum OidValueType {
     Null,
 }
 
+
+
 pub struct OidDefinition {
     pub name: &'static str,
     pub parser: fn(Value) -> Option<String>,
@@ -35,7 +38,7 @@ pub struct OidDefinition {
 #[derive(Debug, Serialize)]
 pub struct OidResult {
     pub name: &'static str,
-    pub oid: &'static str,
+    pub oid: String,
     #[serde(skip)]
     pub raw_value: Value,
     pub raw_value_as_str: String,
@@ -46,12 +49,12 @@ pub struct OidResult {
 impl OidResult {
     pub fn new(
         name: &'static str, 
-        oid: &'static str, 
+        oid: String, 
         raw: Value,
-        parser: fn(&Value) -> Option<String>,
+        parser: fn(Value) -> Option<String>,
     ) -> Self {
         let raw_as_str = raw.to_string();
-        let parsed = parser(&raw);
+        let parsed = parser(raw.clone());
         
         // Форматируем parsed красиво
         let parsed_display = match &parsed {
@@ -78,6 +81,20 @@ impl OidResult {
     }
 }
 
+#[derive(Debug, Serialize)]
+pub struct SnmpResponse {
+    pub host: String,
+    pub host_id: u8,
+    pub oids_request: Vec<String>,
+    pub oids_response: Vec<OidResult>,
+    pub timestamp: String,
+}
+
+impl SnmpResponse {
+    pub fn to_json_pretty(&self) -> Result<String, serde_json::Error> {
+        serde_json::to_string_pretty(self)
+    }
+}
 
 // #[derive(Debug, Clone, Serialize)]
 // pub struct OidResult {

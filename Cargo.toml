@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 async-snmp = "0.5.0"
+chrono = "0.4.44"
 nom = { version = "8.0.0", features = ["std"] }
 nom-language = "0.1.0"
 serde = { version = "1.0.228", features = ["derive"] }
